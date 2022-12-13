@@ -2,6 +2,7 @@ apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
   name: gitops-workshop-pipeline-run-argocd
+  namespace: sample-app-ci
 spec:
   pipelineRef:
     name: build-increment-commit
@@ -11,11 +12,11 @@ spec:
         claimName: git-clone-output
   params:
     - name: repo-url
-      value: https://github.com/darthlukan/gitops-workshop
+      value: https://github.com/skylarscaling/ocp4-devops-demo
     - name: git-branch
-      value: master
+      value: main
     - name: image-name
-      value: quay.io/sscaling/gitops-workshop
+      value: quay.io/sscaling/ocp4-devops-demo
     - name: image-version
       value: v0.0.1
     - name: app-path

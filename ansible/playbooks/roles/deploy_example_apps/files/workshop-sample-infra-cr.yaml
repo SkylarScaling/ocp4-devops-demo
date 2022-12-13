@@ -5,7 +5,7 @@ metadata:
   name: sample-infra 
   namespace: openshift-gitops
 spec:
-  project: workshop
+  project: ocp4-devops-demo
   source:
     repoURL: https://github.com/skylarscaling/ocp4-devops-demo.git
     targetRevision: HEAD

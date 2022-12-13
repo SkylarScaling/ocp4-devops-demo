@@ -47,6 +47,22 @@
       delay: 2
       retries: 20
 
+    - name: Create ClusterRoleBinding for ArgoCD Operator ServiceAccount
+      k8s:
+        definition:
+          apiVersion: rbac.authorization.k8s.io/v1
+          kind: ClusterRoleBinding
+          metadata:
+            name: gitops-cluster-admin
+          subjects:
+            - kind: ServiceAccount
+              name: openshift-gitops-argocd-application-controller
+              namespace: openshift-gitops
+          roleRef:
+            apiGroup: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: cluster-admin
+
   always:
     - name: If login succeeded, try to log out (revoke access token)
       when: k8s_auth_results.k8s_auth.api_key is defined

@@ -5,7 +5,7 @@ metadata:
   name: sample-app-ci
   namespace: openshift-gitops
 spec:
-  project: workshop
+  project: ocp4-devops-demo
   source:
     repoURL: https://github.com/SkylarScaling/ocp4-devops-demo.git
     targetRevision: HEAD
