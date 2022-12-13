@@ -1,0 +1,44 @@
+---
+- name: Install Pipelines Operator
+  block:
+    - include_vars: "{{ role_path }}/../role_vars.yaml"
+    - include_vars: "{{ role_path }}/{{ user_vars_path }}"
+
+    - name: Login to cluster (obtain access token)
+      community.kubernetes.k8s_auth:
+        host: "https://api.{{ cluster_name }}.{{ cluster_base_domain }}:6443"
+        validate_certs: no
+        username: "{{ cluster_admin_user }}"
+        password: "{{ cluster_admin_pass }}"
+      register: k8s_auth_results
+
+    - name: "Install Pipelines Operator"
+      k8s:
+        host: "https://api.{{ cluster_name }}.{{ cluster_base_domain }}:6443"
+        validate_certs: no
+        api_key: "{{ k8s_auth_results.k8s_auth.api_key }}"
+        state: present
+        definition:
+          apiVersion: operators.coreos.com/v1alpha1
+          kind: Subscription
+          metadata:
+            name: openshift-pipelines-operator
+            namespace: openshift-operators
+          labels:
+            operators.coreos.com/openshift-pipelines-operator-rh.openshift-operators: ''
+          spec:
+            sourceNamespace: openshift-marketplace
+            source: redhat-operators
+            channel: pipelines-1.8
+            installPlanApproval: Automatic
+            name: openshift-pipelines-operator-rh
+            startingCSV: openshift-pipelines-operator-rh.v1.8.2
+
+  always:
+    - name: If login succeeded, try to log out (revoke access token)
+      when: k8s_auth_results.k8s_auth.api_key is defined
+      community.kubernetes.k8s_auth:
+        host: "https://api.{{ cluster_name }}.{{ cluster_base_domain }}:6443"
+        validate_certs: no
+        state: absent
+        api_key: "{{ k8s_auth_results.k8s_auth.api_key }}"

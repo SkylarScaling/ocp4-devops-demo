@@ -1,0 +1,11 @@
+# TODO Store template file in repo, then add to .gitignore
+
+################################################################
+# DO NOT commit this file to your repo, unless you encrypt it!
+################################################################
+
+# Populate your cluster admin user and password for ansible automation
+cluster_admin_user: <TODO Populate>
+cluster_admin_pass: <TODO Populate>
+cluster_name: <TODO Populate>
+cluster_base_domain: <TODO Populate>

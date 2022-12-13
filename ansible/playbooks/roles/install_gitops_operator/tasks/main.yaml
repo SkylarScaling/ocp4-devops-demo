@@ -1,0 +1,57 @@
+---
+- name: Install GitOps Operator
+  block:
+    - include_vars: "{{ role_path }}/../role_vars.yaml"
+    - include_vars: "{{ role_path }}/{{ user_vars_path }}"
+
+    - name: Login to cluster (obtain access token)
+      community.kubernetes.k8s_auth:
+        host: "https://api.{{ cluster_name }}.{{ cluster_base_domain }}:6443"
+        validate_certs: no
+        username: "{{ cluster_admin_user }}"
+        password: "{{ cluster_admin_pass }}"
+      register: k8s_auth_results
+
+    - name: "Install GitOps Operator"
+      k8s:
+        host: "https://api.{{ cluster_name }}.{{ cluster_base_domain }}:6443"
+        validate_certs: no
+        api_key: "{{ k8s_auth_results.k8s_auth.api_key }}"
+        state: present
+        definition:
+          apiVersion: operators.coreos.com/v1alpha1
+          kind: Subscription
+          metadata:
+            name: openshift-gitops-operator
+            namespace: openshift-operators
+          labels:
+            operators.coreos.com/openshift-gitops-operator.openshift-operators: ''
+          spec:
+            sourceNamespace: openshift-marketplace
+            source: redhat-operators
+            channel: gitops-1.6
+            installPlanApproval: Automatic
+            name: openshift-gitops-operator
+            startingCSV: openshift-gitops-operator.v1.6.3
+
+    - name: Wait for openshift-gitops namespace to be present
+      k8s_info:
+        host: "https://api.{{ cluster_name }}.{{ cluster_base_domain }}:6443"
+        validate_certs: no
+        api_key: "{{ k8s_auth_results.k8s_auth.api_key }}"
+        kind: Namespace
+        api_version: v1
+        name: openshift-gitops
+      register: output_info
+      until: (output_info.resources | json_query('[0].status.phase')) == 'Active'
+      delay: 2
+      retries: 20
+
+  always:
+    - name: If login succeeded, try to log out (revoke access token)
+      when: k8s_auth_results.k8s_auth.api_key is defined
+      community.kubernetes.k8s_auth:
+        host: "https://api.{{ cluster_name }}.{{ cluster_base_domain }}:6443"
+        validate_certs: no
+        state: absent
+        api_key: "{{ k8s_auth_results.k8s_auth.api_key }}"

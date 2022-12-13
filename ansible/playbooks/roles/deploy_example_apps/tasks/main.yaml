@@ -1,0 +1,36 @@
+---
+- name: Deploy demo applications
+  block:
+    - include_vars: "{{ role_path }}/../role_vars.yaml"
+    - include_vars: "{{ role_path }}/{{ user_vars_path }}"
+
+    - name: Login to cluster (obtain access token)
+      community.kubernetes.k8s_auth:
+        host: "https://api.{{ cluster_name }}.{{ cluster_base_domain }}:6443"
+        validate_certs: no
+        username: "{{ cluster_admin_user }}"
+        password: "{{ cluster_admin_pass }}"
+      register: k8s_auth_results
+
+    - name: Deploy demo applications
+      k8s:
+        host: "https://api.{{ cluster_name }}.{{ cluster_base_domain }}:6443"
+        validate_certs: no
+        api_key: "{{ k8s_auth_results.k8s_auth.api_key }}"
+        state: present
+        namespace: openshift-gitops
+        src: "{{ role_path }}/files/{{ item }}"
+      loop:
+        - workshop-argo-project-cr.yaml
+        - workshop-sample-app-cr.yaml
+        - workshop-sample-infra-cr.yaml
+        - workshop-sample-app-ci-cr.yaml
+
+  always:
+    - name: If login succeeded, try to log out (revoke access token)
+      when: k8s_auth_results.k8s_auth.api_key is defined
+      community.kubernetes.k8s_auth:
+        host: "https://api.{{ cluster_name }}.{{ cluster_base_domain }}:6443"
+        validate_certs: no
+        state: absent
+        api_key: "{{ k8s_auth_results.k8s_auth.api_key }}"
