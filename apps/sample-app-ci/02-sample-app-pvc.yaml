@@ -5,6 +5,8 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
+  volumeMode: Filesystem
+  storageClassName: gp2-csi
   resources:
     requests:
       storage: 1Gi
