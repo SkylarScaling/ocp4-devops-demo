@@ -2,18 +2,18 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: sample-app-ci
+  name: pipeline-example-app
   namespace: openshift-gitops
 spec:
   project: ocp4-devops-demo
   source:
     repoURL: https://github.com/SkylarScaling/ocp4-devops-demo.git
     targetRevision: HEAD
-    path: apps/sample-app-ci
+    path: apps/pipeline-example-app/01_pipeline
   destination:
     # Need to get this automagically via detection
     server: https://kubernetes.default.svc
-    namespace: sample-app-ci
+    namespace: pipeline-example-app
   finalizers:
   - resources-finalizer.argocd.argoproj.io
   syncPolicy:
