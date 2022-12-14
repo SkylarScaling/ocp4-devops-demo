@@ -25,4 +25,4 @@ metadata:
   name: github-secret
 type: Opaque
 stringData:
-  secretToken: "<TODO Populate>"
+  secretToken: "1234567"
