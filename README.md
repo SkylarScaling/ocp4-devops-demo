@@ -18,7 +18,7 @@ The following technologies are the focus of this demo: \
 ### Environment
 
 For the best possible performance, it is recommended the workshop be conducted on a hosted (either bare-metal or via cloud provider)
-Red Hat OpenShift 4.x cluster. 
+Red Hat OpenShift 4.10+ cluster. 
 
 ### Tools
 
@@ -44,46 +44,56 @@ Any commands provided are for linux systems.
 > python version = 3.6.8 (default, Mar 18 2021, 08:58:41) [GCC 8.4.1 20200928 (Red Hat 8.4.1-1)]
 > ```
 
-The utilites in the list below are also required, but can be installed automatically by executing the Ansible playbook listed below, once Ansible is installed.
-
-- [OpenShift CLI](https://docs.openshift.com/container-platform/4.7/cli_reference/openshift_cli/getting-started-cli.html) Installed
-- [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) Installed
-- [OpenShift Installer CLI](https://cloud.redhat.com/openshift/install/aws/installer-provisioned) Installed
-- [Python Modules](https://docs.python.org/3/installing/index.html):
-  - [kubernetes](https://pypi.org/project/kubernetes/)
-  - [openshift](https://pypi.org/project/openshift/)
-  - [boto3](https://pypi.org/project/boto3/)
-  
-They can be automatically installed by running the following command: 
-
-```
-$ ansible-playbook ansible/playbooks/setup-prereqs.yaml --ask-become-pass
-```
-
-> **Notes:**
->
-> *Arguments*
->
-> `--ask-become-pass` This will prompt for your root password, so required python libraries can be installed.
-
-You can force the OpenShift binaries to update (if you already have oc and openshift-install on your system), by using the following command:
-```
-$ ansible-playbook playbooks/setup-prereqs.yaml --ask-become-pass -e force_update=true
-```
-
-> **Notes:**
->
-> *Arguments*
->
-> `force_update` This will tell Ansible to delete the existing oc and openshift-install binaries, forcing new versions to be installed.
-
-
 ## Facilitator Usage
+### Provisioning a Cluster
 
-Facilitators of this workshop can automatically provision the requisite components using the supplied playbooks. You
+Facilitators for this Workshop with access to RHPDS can order the [OCP4 Pipelines Workshop](https://demo.redhat.com/catalog?search=pipeline&item=babylon-catalog-prod%2Fsandboxes-gpte.ocp4-wksp-pipelines.prod) 
+catalog item. 
+
+This cluster will include a PV, which is required for the pipelines in this workshop. You will then need
+to update the cluster to OCP 4.10+ for the OpenShift Pipelines Operator version used in this Workshop. 
+
+Any other OCP 4.10+ cluster with access to a PV can be used with this workshop as well.
+
+### Deploying the Workshop
+
+Facilitators of this workshop can automatically deploy the requisite components using the supplied playbooks. You
 must have `cluster-admin` or an administrative role that allows creation and modification of `CustomResourceDefinitions`
 and `InstallPlans` at the cluster scope in order to install the operator components used in this repo.
+
+#### 1) Fork repo
+Fork this repository, then clone it to the location you would like to deploy the workshop from. \
+Next, [oc login](https://docs.openshift.com/container-platform/4.10/cli_reference/openshift_cli/getting-started-cli.html#cli-logging-in_cli-developer-commands) 
+to the destination cluster.
+
+#### 2) Populate user_vars.yaml
+Populate the user_vars.yaml file with the required information to connect to your cluster.
+
+cluster_admin_user: _< username >_ \
+cluster_admin_pass: _< password >_ \
+cluster_name: _< cluster name >_ \
+cluster_base_domain: _< cluster domain >_
+
+_e.g._ \
+cluster_admin_user: _my-cluster-admin_ \
+cluster_admin_pass: _mY-pA$sWoRd_ \
+cluster_name: _cluster-123a4_ \
+cluster_base_domain: _123a4.sandbox123.opentlc.com_
+
+> **Note: DO NOT save these values to your repository!**
+> 
+> If you want to ignore changes to this file for your repo, use the following command: 
+> ```
+> git update-index --assume-unchanged user_vars.yaml
+> ```
+
+#### 3) Run configure-cluster.yaml playbook
+Run the following playbook to deploy the workshop content to your cluster:
 
 ```
 $ ansible-playbook ansible/playbooks/configure-cluster.yaml
 ```
+
+TODO - Fork application repos
+TODO - Add Webhook to repo
+TODO - Deploy triggers, expose route for EventListener

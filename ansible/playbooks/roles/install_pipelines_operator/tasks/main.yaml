@@ -12,6 +12,54 @@
         password: "{{ cluster_admin_pass }}"
       register: k8s_auth_results
 
+    - name: Check Existing Pipelines Operator
+      k8s_info:
+        host: "https://api.{{ cluster_name }}.{{ cluster_base_domain }}:6443"
+        validate_certs: no
+        api_key: "{{ k8s_auth_results.k8s_auth.api_key }}"
+        api_version: operators.coreos.com/v1alpha1
+        kind: Subscription
+        name: openshift-pipelines-operator
+        namespace: openshift-operators
+      register: pipelines_operator_result
+
+    - name: Operator result
+      debug:
+        msg: "{{ pipelines_operator_result.resources | json_query('[0].status.currentCSV') }}"
+
+    - name: "Remove Existing Pipelines Operator"
+      block:
+        - name: "Remove Subscription"
+          k8s:
+            host: "https://api.{{ cluster_name }}.{{ cluster_base_domain }}:6443"
+            validate_certs: no
+            api_key: "{{ k8s_auth_results.k8s_auth.api_key }}"
+            state: absent
+            definition:
+              apiVersion: operators.coreos.com/v1alpha1
+              kind: Subscription
+              metadata:
+                name: openshift-pipelines-operator
+                namespace: openshift-operators
+
+        - name: "Remove CSV"
+          k8s:
+            host: "https://api.{{ cluster_name }}.{{ cluster_base_domain }}:6443"
+            validate_certs: no
+            api_key: "{{ k8s_auth_results.k8s_auth.api_key }}"
+            state: absent
+            definition:
+              apiVersion: operators.coreos.com/v1alpha1
+              kind: ClusterServiceVersion
+              metadata:
+                name: "{{ pipelines_operator_result.resources[0].status.currentCSV }}"
+                namespace: openshift-operators
+
+        - name: "Wait for pipelines operator to uninstall"
+          pause:
+            seconds: 5
+      when: pipelines_operator_result.resources | length > 0
+
     - name: "Install Pipelines Operator"
       k8s:
         host: "https://api.{{ cluster_name }}.{{ cluster_base_domain }}:6443"
@@ -33,6 +81,10 @@
             installPlanApproval: Automatic
             name: openshift-pipelines-operator-rh
             startingCSV: openshift-pipelines-operator-rh.v1.8.2
+
+    - name: "Wait for pipelines operator to install"
+      pause:
+        seconds: 15
 
   always:
     - name: If login succeeded, try to log out (revoke access token)
