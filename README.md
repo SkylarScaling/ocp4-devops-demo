@@ -50,6 +50,13 @@ The included Ansible playbooks also use modules from a collection that must be i
 $ ansible-galaxy collection install community.general
 ```
 
+#### GitHub Personal Access Token
+The automation for this demo will create a webhook for your forked application repos for you, but you will need to provide
+it with a token to access your GitHub repos. [This documentation from GitHub](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) 
+explains the process, and you can input the generated token in the _user_vars.yaml_ file as detailed below.
+
+PROTECT 
+
 ## Facilitator Usage
 ### Provisioning a Cluster
 
@@ -111,3 +118,32 @@ Run the following playbook to deploy the workshop content to your cluster:
 ```
 $ ansible-playbook ansible/playbooks/configure-cluster.yaml
 ```
+
+### Delivering the Workshop
+This workshop deploys 3 ArgoCD Apps for demonstrating DevOps / GitOps principles.
+
+#### sample-app
+This simple application deploys a single Pod into the sample-app namespace, and outputs a message continuously that can
+be viewed in the Pod Logs for the sample-app container.
+
+To demonstrate how Argo will automatically sync changes from the git repo for this application, you can modify 
+_apps/sample-app-config/sample-app-deployment.yaml_ to have a different output message. 
+
+When you commit this change to 
+your forked version of this repo, it will automatically roll out on your OCP cluster and create a new pod outputting the
+updated message.
+
+#### pipeline-example-app
+This application uses a build and deployment pipeline in the _pipeline-example-app_ namespace, and can be accessed from
+the _pipelines-vote-ui_ Route created in that namespace.
+
+To demonstrate automated pipelines in OCP, you can modify _app.py_ in your forked _pipelines-vote-ui_ repo. When a change
+to this file is committed (a couple commented lines can be exchanged easily for demo purposes) the webhook created for
+that repo will notify OCP to kick off a new PipelineRun, which will rebuild and redeploy the application. 
+
+#### sample-infra
+This ArgoCD App demonstrates how OCP infra components can be managed using DevOps / GitOps principles. 
+
+A few example
+CRDs are included that will deploy a Secret, ServiceAccount, RoleBinding, etc. that you can modify in your forked version
+of this repo for demonstration purposed.
