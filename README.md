@@ -67,10 +67,14 @@ Facilitators of this workshop can automatically deploy the requisite components 
 must have `cluster-admin` or an administrative role that allows creation and modification of `CustomResourceDefinitions`
 and `InstallPlans` at the cluster scope in order to install the operator components used in this repo.
 
-#### 1) Fork repo
-Fork this repository, then clone it to the location you would like to deploy the workshop from. \
-Next, [oc login](https://docs.openshift.com/container-platform/4.10/cli_reference/openshift_cli/getting-started-cli.html#cli-logging-in_cli-developer-commands) 
-to the destination cluster.
+#### 1) Fork repos
+Fork this repository, then clone it to the location from which you would like to deploy the workshop.
+
+You will also need to fork the repos for the pipeline example app so you can demonstrate how triggers and webhooks can
+be used to automatically kick off Pipeline Runs:
+
+[Pipelines UI Repo](https://github.com/SkylarScaling/pipelines-vote-ui) \
+[Pipelines API Repo](https://github.com/SkylarScaling/pipelines-vote-api)
 
 #### 2) Populate user_vars.yaml
 Populate the user_vars.yaml file with the required information to connect to your cluster.
@@ -78,13 +82,21 @@ Populate the user_vars.yaml file with the required information to connect to you
 cluster_admin_user: _< username >_ \
 cluster_admin_pass: _< password >_ \
 cluster_name: _< cluster name >_ \
-cluster_base_domain: _< cluster domain >_
+cluster_base_domain: _< cluster domain >_ \
+application_api_repo: _< api repo >_ \
+application_ui_repo: _< ui repo >_ \
+github_user: _< GitHub username >_ \
+github_token: _< github token >_ 
 
 _e.g._ \
 cluster_admin_user: _my-cluster-admin_ \
 cluster_admin_pass: _mY-pA$sWoRd_ \
 cluster_name: _cluster-123a4_ \
-cluster_base_domain: _123a4.sandbox123.opentlc.com_
+cluster_base_domain: _123a4.sandbox123.opentlc.com_ \
+application_api_repo: _SkylarScaling/pipelines-vote-api_ \
+application_ui_repo: _SkylarScaling/pipelines-vote-ui_ \
+github_user: _SkylarScaling_ \
+github_token: _ghp_abcd1234xyz_
 
 > **Note: DO NOT save these values to your repository!**
 > 
@@ -99,7 +111,3 @@ Run the following playbook to deploy the workshop content to your cluster:
 ```
 $ ansible-playbook ansible/playbooks/configure-cluster.yaml
 ```
-
-TODO - Fork application repos \
-TODO - Add Webhook to repo \
-TODO - Deploy triggers, expose route for EventListener
