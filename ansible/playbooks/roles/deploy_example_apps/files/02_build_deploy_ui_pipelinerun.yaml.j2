@@ -1,7 +1,8 @@
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  generateName: build-deploy-ui-pipelinerun-
+  name: build-deploy-ui-pipelinerun-init
+  namespace: pipeline-example-app
 spec:
   pipelineRef:
     name: build-and-deploy
@@ -9,7 +10,7 @@ spec:
   - name: deployment-name
     value: pipelines-vote-ui
   - name: git-url
-    value: https://github.com/skylarscaling/pipelines-vote-ui.git
+    value: "https://github.com/{{ application_ui_repo }}.git"
   - name: IMAGE
     value: image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/pipelines-vote-ui
   workspaces:

@@ -27,7 +27,7 @@ Any commands provided are for linux systems.
 
 - [Python 3+](https://www.python.org/downloads/)
 - [Git 2.27+](https://git-scm.com/downloads)
-- [Ansible 2.8+](https://docs.ansible.com/ansible/2.9/installation_guide/intro_installation.html)
+- [Ansible 2.9+](https://docs.ansible.com/ansible/2.9/installation_guide/intro_installation.html)
 
 > NOTE: Ansible will need python 3 in order to use the required modules and libraries, so it is recommended that you use 
 > the following command to install Ansible: 
@@ -43,6 +43,12 @@ Any commands provided are for linux systems.
 > ```
 > python version = 3.6.8 (default, Mar 18 2021, 08:58:41) [GCC 8.4.1 20200928 (Red Hat 8.4.1-1)]
 > ```
+
+#### Additional Required Ansible Module
+The included Ansible playbooks also use modules from a collection that must be installed from ansible galaxy:
+```
+$ ansible-galaxy collection install community.general
+```
 
 ## Facilitator Usage
 ### Provisioning a Cluster
@@ -84,7 +90,7 @@ cluster_base_domain: _123a4.sandbox123.opentlc.com_
 > 
 > If you want to ignore changes to this file for your repo, use the following command: 
 > ```
-> git update-index --assume-unchanged user_vars.yaml
+> $ git update-index --assume-unchanged user_vars.yaml
 > ```
 
 #### 3) Run configure-cluster.yaml playbook
@@ -94,6 +100,6 @@ Run the following playbook to deploy the workshop content to your cluster:
 $ ansible-playbook ansible/playbooks/configure-cluster.yaml
 ```
 
-TODO - Fork application repos
-TODO - Add Webhook to repo
+TODO - Fork application repos \
+TODO - Add Webhook to repo \
 TODO - Deploy triggers, expose route for EventListener

@@ -3,7 +3,9 @@
   pip:
     name: "{{ item }}"
   loop:
+    - requests
+    - requests-oauthlib
     - kubernetes
-    - openshift
-    - boto3
+    - jmespath
+    - pygithub
 ...

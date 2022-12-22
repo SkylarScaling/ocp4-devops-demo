@@ -5,7 +5,7 @@
     - include_vars: "{{ role_path }}/{{ user_vars_path }}"
 
     - name: Login to cluster (obtain access token)
-      community.kubernetes.k8s_auth:
+      k8s_auth:
         host: "https://api.{{ cluster_name }}.{{ cluster_base_domain }}:6443"
         validate_certs: no
         username: "{{ cluster_admin_user }}"
@@ -18,7 +18,6 @@
         validate_certs: no
         api_key: "{{ k8s_auth_results.k8s_auth.api_key }}"
         state: present
-        namespace: openshift-gitops
         src: "{{ role_path }}/files/{{ item }}"
       loop:
         - workshop-argo-project-cr.yaml
@@ -26,10 +25,21 @@
         - workshop-sample-infra-cr.yaml
         - workshop-pipeline-example-app-cr.yaml
 
+    - name: Run initial application pipeline
+      k8s:
+        host: "https://api.{{ cluster_name }}.{{ cluster_base_domain }}:6443"
+        validate_certs: no
+        api_key: "{{ k8s_auth_results.k8s_auth.api_key }}"
+        state: present
+        definition: "{{ lookup('template', item) | from_yaml }}"
+      loop:
+        - "{{ role_path }}/files/01_build_deploy_api_pipelinerun.yaml.j2"
+        - "{{ role_path }}/files/02_build_deploy_ui_pipelinerun.yaml.j2"
+
   always:
     - name: If login succeeded, try to log out (revoke access token)
       when: k8s_auth_results.k8s_auth.api_key is defined
-      community.kubernetes.k8s_auth:
+      k8s_auth:
         host: "https://api.{{ cluster_name }}.{{ cluster_base_domain }}:6443"
         validate_certs: no
         state: absent

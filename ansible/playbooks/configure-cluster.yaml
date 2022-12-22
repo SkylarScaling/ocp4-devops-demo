@@ -1,5 +1,5 @@
 ---
-- name: Deploy Operators
+- name: Deploy Demo Components to Cluster
   hosts: localhost
   connection: local
   gather_facts: false
@@ -15,4 +15,8 @@
     - name: Deploy Demo Apps
       include_role:
         name: deploy_example_apps
+
+    - name: Create Webhooks and Triggers
+      include_role:
+        name: create_webhooks_and_triggers
 ...

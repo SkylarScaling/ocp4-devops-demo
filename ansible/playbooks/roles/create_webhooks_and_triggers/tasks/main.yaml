@@ -1,0 +1,77 @@
+---
+- name: Create Pipeline Webhook and Triggers
+  block:
+    - include_vars: "{{ role_path }}/../role_vars.yaml"
+    - include_vars: "{{ role_path }}/{{ user_vars_path }}"
+
+    - name: Login to cluster (obtain access token)
+      k8s_auth:
+        host: "https://api.{{ cluster_name }}.{{ cluster_base_domain }}:6443"
+        validate_certs: no
+        username: "{{ cluster_admin_user }}"
+        password: "{{ cluster_admin_pass }}"
+      register: k8s_auth_results
+
+    - name: Deploy demo applications
+      k8s:
+        host: "https://api.{{ cluster_name }}.{{ cluster_base_domain }}:6443"
+        validate_certs: no
+        api_key: "{{ k8s_auth_results.k8s_auth.api_key }}"
+        state: present
+        namespace: pipeline-example-app
+        src: "{{ role_path }}/files/{{ item }}"
+      loop:
+        - 01_trigger_binding.yaml
+        - 02_trigger_template.yaml
+        - 03_trigger.yaml
+        - 04_trigger_event_listener.yaml
+
+    - name: Create Event Listener service Route
+      k8s:
+        host: "https://api.{{ cluster_name }}.{{ cluster_base_domain }}:6443"
+        validate_certs: no
+        api_key: "{{ k8s_auth_results.k8s_auth.api_key }}"
+        state: present
+        definition:
+          kind: Route
+          apiVersion: route.openshift.io/v1
+          metadata:
+            name: el-vote-app
+            namespace: pipeline-example-app
+            labels:
+              app.kubernetes.io/managed-by: EventListener
+              app.kubernetes.io/part-of: Triggers
+              eventlistener: vote-app
+          spec:
+            host: "el-vote-app-pipeline-example-app.apps.{{ cluster_name }}.{{ cluster_base_domain }}"
+            to:
+              kind: Service
+              name: el-vote-app
+              weight: 100
+            port:
+              targetPort: http-listener
+            wildcardPolicy: None
+
+    - name: Create a new webhook that triggers on push
+      community.general.github_webhook:
+        repository: "{{ application_ui_repo }}"
+        url: "http://el-vote-app-pipeline-example-app.apps.{{ cluster_name }}.{{ cluster_base_domain }}"
+        content_type: json
+        secret: "1234567"
+        events:
+          - push
+        user: "{{ github_user }}"
+        token: "{{ github_token }}"
+
+  always:
+    - name: If login succeeded, try to log out (revoke access token)
+      when: k8s_auth_results.k8s_auth.api_key is defined
+      k8s_auth:
+        host: "https://api.{{ cluster_name }}.{{ cluster_base_domain }}:6443"
+        validate_certs: no
+        state: absent
+        api_key: "{{ k8s_auth_results.k8s_auth.api_key }}"
+
+
+
+    
